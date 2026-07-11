@@ -173,9 +173,6 @@ if (location.protocol.startsWith('http')) {
 }
 function track(name){ try{ if(window.fbq) fbq('trackCustom', name); }catch(e){} }
 
-// Insignia "$" verde para el centro del QR.
-const QR_LOGO = 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" rx="26" fill="#12a150"/><text x="50" y="54" font-family="-apple-system,system-ui,Arial,sans-serif" font-size="64" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central">$</text></svg>');
-
 const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
@@ -280,14 +277,12 @@ function iniciarGenerador() {
     const qr = $('#qr');
     if (!qrStyling) {
       qrStyling = new QRCodeStyling({
-        width: 240, height: 240, type: 'canvas', data: urlActual, margin: 6,
+        width: 340, height: 340, type: 'canvas', data: urlActual, margin: 8,
         qrOptions: { errorCorrectionLevel: 'H' },
-        dotsOptions: { type: 'rounded', color: '#0c7a41' },
+        dotsOptions: { type: 'dots', color: '#111111' },
         backgroundOptions: { color: '#ffffff' },
-        cornersSquareOptions: { type: 'extra-rounded', color: '#0a5c32' },
-        cornersDotOptions: { type: 'dot', color: '#12a150' },
-        image: QR_LOGO,
-        imageOptions: { imageSize: 0.26, margin: 4, hideBackgroundDots: true }
+        cornersSquareOptions: { type: 'square', color: '#111111' },
+        cornersDotOptions: { type: 'square', color: '#111111' }
       });
       qr.innerHTML = ''; qrStyling.append(qr);
     } else {

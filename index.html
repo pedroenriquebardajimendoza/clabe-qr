@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>QR de cobro</title>
+<title>Cóbrame — tu QR de cobro</title>
 <script src="qrcode.min.js"></script>
 <style>
   :root {
@@ -25,7 +25,8 @@
   }
   .wrap { max-width: 460px; margin: 0 auto; }
   .head { text-align: center; margin-bottom: 20px; }
-  .head h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px; }
+  .brand { font-size: 1.05rem; font-weight: 800; color: var(--accent); letter-spacing: -.01em; margin-bottom: 10px; }
+  .head h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.02em; margin: 0 0 6px; line-height: 1.2; }
   .head p { color: var(--muted); font-size: .95rem; margin: 0; }
 
   .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
@@ -82,14 +83,18 @@
   .copy:active { transform: scale(.94); }
   .copy svg { width: 16px; height: 16px; }
   .copied { color: var(--accent); }
+  .loopcta { display: block; text-align: center; margin-top: 26px; padding: 16px; text-decoration: none;
+             color: var(--muted); font-size: .95rem; border: 1px dashed var(--border); border-radius: var(--radius); }
+  .loopcta b { color: var(--accent); }
 </style>
 
 <div class="wrap">
   <!-- Generador -->
   <div id="gen">
     <div class="head">
-      <h1>Tu QR de cobro</h1>
-      <p>Comparte tus datos para recibir transferencias</p>
+      <div class="brand">Cóbrame</div>
+      <h1>Tu QR de cobro, listo para compartir</h1>
+      <p>Deja de escribir tu CLABE cada vez. Genéralo una vez y compártelo.</p>
     </div>
     <div class="card">
       <div class="field">
@@ -192,6 +197,8 @@ if (location.hash.length > 1) {
   if (nombre)  html += row('Nombre', nombre, false);
   if (clabe)   html += row('CLABE', clabe, true);
   if (tarjeta) html += row('Tarjeta', tarjeta, true);
+  const base = location.href.split('#')[0];
+  html += `<a class="loopcta" href="${escapeHtml(base)}">Creado con <b>Cóbrame</b> · Crea tu QR de cobro gratis</a>`;
   v.innerHTML = html;
 
   v.querySelectorAll('.copy').forEach(btn => {

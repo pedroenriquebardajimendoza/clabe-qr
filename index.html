@@ -170,8 +170,20 @@ if (location.protocol.startsWith('http')) {
   'https://connect.facebook.net/en_US/fbevents.js');
   fbq('init','1356247858748945');
   fbq('track','PageView');
+
+  // Google Analytics (GA4)
+  var _ga = document.createElement('script'); _ga.async = true;
+  _ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-SLVBXCW048';
+  document.head.appendChild(_ga);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', 'G-SLVBXCW048');
 }
-function track(name){ try{ if(window.fbq) fbq('trackCustom', name); }catch(e){} }
+function track(name){
+  try{ if(window.fbq) fbq('trackCustom', name); }catch(e){}
+  try{ if(window.gtag) gtag('event', name); }catch(e){}
+}
 
 const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';

@@ -21,8 +21,9 @@
 
   /* Visor */
   #visor { text-align: center; }
-  .badge { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .8rem; border-radius: 999px;
-           color: #fff; font-weight: 600; margin: .3rem 0 1rem; }
+  .logo { display: inline-flex; align-items: center; gap: .6rem; margin: .4rem 0 1.1rem; font-weight: 600; font-size: 1.1rem; }
+  .mono { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+          border-radius: 11px; font-weight: 700; font-size: .95rem; letter-spacing: .5px; }
   .campo { text-align: left; border: 1px solid #8884; border-radius: 12px; padding: .7rem .9rem; margin: .7rem 0; }
   .campo .lab { font-size: .8rem; opacity: .7; }
   .campo .val { font-size: 1.35rem; letter-spacing: 2px; word-break: break-all; margin: .2rem 0 .5rem; }
@@ -98,8 +99,9 @@ if (location.hash.length > 1) {
   let html = '';
   if (nombre) html += `<h1>${escapeHtml(nombre)}</h1>`;
   if (bancoNombre) {
-    const dark = bancoColor === '#ffdd00';
-    html += `<div class="badge" style="background:${bancoColor||'#666'};${dark?'color:#111':''}">${escapeHtml(bancoNombre)}</div>`;
+    const color = bancoColor || '#666';
+    const txt = isLight(color) ? '#111' : '#fff';
+    html += `<div class="logo"><span class="mono" style="background:${color};color:${txt}">${escapeHtml(initials(bancoNombre))}</span><span>${escapeHtml(bancoNombre)}</span></div>`;
   }
   if (clabe) html += campo('CLABE', clabe);
   if (tarjeta) html += campo('Tarjeta', tarjeta);
@@ -120,6 +122,20 @@ function campo(lab, val) {
        + `<button data-copy="${escapeHtml(val)}">Copiar ${lab}</button></div>`;
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function initials(name){
+  const clean = name.replace(/\(.*?\)/g,'').trim();
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length === 1){
+    const caps = words[0].match(/[A-ZÁÉÍÓÚÑ0-9]/g) || [];
+    return caps.length >= 2 ? caps.slice(0,4).join('') : words[0].slice(0,2).toUpperCase();
+  }
+  return words.slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function isLight(hex){
+  const h = hex.replace('#',''); if (h.length !== 6) return false;
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return (0.299*r + 0.587*g + 0.114*b) > 170;
+}
 
 function iniciarGenerador() {
   const nom = $('input[name=nombre]'), cl = $('input[name=clabe]'),

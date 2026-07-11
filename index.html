@@ -1,0 +1,117 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QR de CLABE / Tarjeta</title>
+<script src="qrcode.min.js"></script>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: system-ui, sans-serif; max-width: 420px; margin: 0 auto; line-height: 1.5;
+    padding: calc(env(safe-area-inset-top) + 1.5rem) 1rem calc(env(safe-area-inset-bottom) + 1.5rem);
+  }
+  h1 { font-size: 1.3rem; }
+  input { width: 100%; font-size: 1.2rem; padding: .6rem; box-sizing: border-box; letter-spacing: 2px; }
+  input[name=nombre] { letter-spacing: normal; font-size: 1rem; margin-top: .5rem; }
+  #msg { min-height: 1.2rem; margin: .5rem 0; font-size: .9rem; }
+  .ok { color: #2a8; } .err { color: #d44; }
+  #out { text-align: center; margin-top: 1rem; }
+  #qr { display: inline-block; }
+  #qr img, #qr canvas { max-width: 100%; }
+  #dato { font-size: 1.3rem; letter-spacing: 2px; word-break: break-all; margin: .5rem 0; }
+  button { font-size: 1rem; padding: .6rem 1rem; cursor: pointer; }
+</style>
+
+<!-- Generador (dentro de la app) -->
+<div id="gen">
+  <h1>Genera tu QR de cobro</h1>
+  <p>Pon tu CLABE (18 dígitos) o número de tarjeta (16). Al escanear el QR sale un pop-up para abrir la página con el número listo para copiar.</p>
+
+  <input name="dato" inputmode="numeric" placeholder="CLABE o tarjeta" autocomplete="off" maxlength="18">
+  <input name="nombre" placeholder="Tu nombre (opcional)" autocomplete="off" maxlength="60">
+  <div id="msg"></div>
+
+  <div id="out" hidden>
+    <div id="qr"></div>
+    <div id="dato"></div>
+    <button id="copiar">Copiar número</button>
+  </div>
+</div>
+
+<!-- Visor (lo que abre al escanear) -->
+<div id="visor" hidden>
+  <h1 id="v-nombre"></h1>
+  <p>CLABE / Tarjeta para transferirte:</p>
+  <div id="v-dato" style="font-size:1.6rem;letter-spacing:2px;word-break:break-all;margin:1rem 0"></div>
+  <button id="v-copiar" style="font-size:1.2rem;padding:.8rem 1.5rem">Copiar número</button>
+</div>
+
+<script>
+// ⚠️ URL pública donde vive este mismo archivo (se completa al hospedar).
+const VIEWER_URL = 'https://pedroenriquebardajimendoza.github.io/clabe-qr/';
+
+const $ = s => document.querySelector(s);
+
+// Modo visor: si la URL trae datos en el # (al escanear el QR).
+if (location.hash.length > 1) {
+  const [c, nombre] = decodeURIComponent(location.hash.slice(1)).split('|');
+  $('#gen').hidden = true;
+  $('#visor').hidden = false;
+  $('#v-nombre').textContent = nombre || 'Datos de cobro';
+  $('#v-dato').textContent = c;
+  $('#v-copiar').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(c);
+    $('#v-copiar').textContent = '¡Copiado!';
+    setTimeout(() => $('#v-copiar').textContent = 'Copiar número', 1500);
+  });
+} else {
+  iniciarGenerador();
+}
+
+function iniciarGenerador() {
+const inp = $('input[name=dato]'), nom = $('input[name=nombre]'), msg = $('#msg'), out = $('#out');
+
+// Dígito de control CLABE: pesos 3,7,1 sobre los primeros 17, mod 10.
+function clabeValida(c) {
+  if (c.length !== 18) return false;
+  const pesos = [3,7,1];
+  let suma = 0;
+  for (let i = 0; i < 17; i++) suma += (Number(c[i]) * pesos[i % 3]) % 10;
+  const control = (10 - (suma % 10)) % 10;
+  return control === Number(c[17]);
+}
+
+function render() {
+  const c = inp.value.replace(/\D/g, '');
+  inp.value = c;
+  out.hidden = true;
+  msg.textContent = ''; msg.className = '';
+
+  if (!c) return;
+  if (c.length === 18) {
+    if (!clabeValida(c)) { msg.textContent = 'CLABE inválida (dígito de control no coincide)'; msg.className = 'err'; return; }
+    msg.textContent = 'CLABE válida ✓'; msg.className = 'ok';
+  } else if (c.length === 16) {
+    msg.textContent = 'Tarjeta (16 dígitos) ✓'; msg.className = 'ok';
+  } else {
+    msg.textContent = `${c.length} dígitos — faltan para CLABE (18) o tarjeta (16)`; return;
+  }
+
+  // El QR apunta al visor público con los datos en el # (el # no viaja al servidor).
+  const base = location.protocol.startsWith('http') ? location.href.split('#')[0] : VIEWER_URL;
+  const url = base + '#' + encodeURIComponent(nom.value.trim() ? `${c}|${nom.value.trim()}` : c);
+  const qr = $('#qr');
+  qr.innerHTML = '';
+  new QRCode(qr, { text: url, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
+  $('#dato').textContent = c;
+  out.hidden = false;
+}
+
+inp.addEventListener('input', render);
+nom.addEventListener('input', render);
+
+$('#copiar').addEventListener('click', async () => {
+  await navigator.clipboard.writeText($('#dato').textContent);
+  $('#copiar').textContent = '¡Copiado!';
+  setTimeout(() => $('#copiar').textContent = 'Copiar número', 1500);
+});
+}
+</script>

@@ -160,6 +160,19 @@ const BANCOS = {
 function banco(clabe){ return BANCOS[clabe.slice(0,3)] || null; }
 
 const $ = s => document.querySelector(s);
+
+// Meta Pixel (solo en web, para medir los anuncios; no corre dentro de la app).
+if (location.protocol.startsWith('http')) {
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','1356247858748945');
+  fbq('track','PageView');
+}
+function track(name){ try{ if(window.fbq) fbq('trackCustom', name); }catch(e){} }
+
 const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
@@ -200,6 +213,9 @@ if (location.hash.length > 1) {
   const base = location.href.split('#')[0];
   html += `<a class="loopcta" href="${escapeHtml(base)}">Creado con <b>Cóbrame</b> · Crea tu QR de cobro gratis</a>`;
   v.innerHTML = html;
+  track('CodigoAbierto'); // alguien abrió un código compartido = el loop funciona
+  const cta = v.querySelector('.loopcta');
+  if (cta) cta.addEventListener('click', () => track('ClicCrearDesdeVisor'));
 
   v.querySelectorAll('.copy').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -224,7 +240,7 @@ function iniciarGenerador() {
   const nom = $('input[name=nombre]'), cl = $('input[name=clabe]'),
         bk = $('input[name=banco]'), tj = $('input[name=tarjeta]'),
         msg = $('#msg'), out = $('#out');
-  let bancoManual = false, urlActual = '';
+  let bancoManual = false, urlActual = '', yaGenero = false;
   bk.addEventListener('input', () => { bancoManual = true; });
 
   function clabeValida(c){
@@ -261,12 +277,14 @@ function iniciarGenerador() {
     const qr = $('#qr'); qr.innerHTML = '';
     new QRCode(qr, { text: urlActual, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M });
     out.hidden = false;
+    if (!yaGenero) { yaGenero = true; track('CodigoGenerado'); } // una vez por sesión
   }
 
   [nom, cl, bk, tj].forEach(el => el.addEventListener('input', render));
 
   $('#compartir').addEventListener('click', async () => {
     if (!urlActual) return;
+    track('CodigoCompartido');
     const data = { title: 'Mis datos de cobro', text: 'Escanea o abre para copiar mis datos:', url: urlActual };
     try {
       if (navigator.share) { await navigator.share(data); return; }
